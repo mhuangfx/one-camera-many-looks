@@ -12,6 +12,8 @@ different looks while the camera stays locked.**
 - **The blocking drives the camera.** The blocking video goes to a video model (Seedance 2.5) as
   the motion reference, with a text prompt per look. The camera part of the prompt is the same for
   every look. Only the look changes.
+- **Or render locally.** A ComfyUI route renders the same looks on your own GPU with Wan 2.2 Fun
+  Control, driven by the depth of the blocking.
 - **Nine looks, one grid.** Luxury sedan, future utopia, off-road truck, open-world game, desert
   wasteland, 1970s muscle car, anime, cyberpunk rain, and a speedboat on the ocean. A small ffmpeg
   script tiles them into a 3x3 grid.
@@ -57,11 +59,28 @@ nine came back as one shot with no cuts, and the camera matched the blocking at 
 ./make_grid.sh grid.mp4 look1.mp4 look2.mp4 ... look9.mp4   # 3x3, 1920x1080, 10 s, no sound
 ```
 
+## Local route: ComfyUI
+
+The same blocking also drives an open model on your own GPU. Depth Anything V2 turns every
+blocking frame into a depth map, and Wan 2.2 Fun Control renders the look from that depth and the
+look text, so the camera comes from the blocking. An optional Qwen Image Edit stage styles the
+first frame. One look takes about 3 to 4 minutes on an RTX 4090.
+
+[![Blocking, local render, hosted render (click to play)](media/compare_look8.jpg)](media/compare_look8.mp4)
+
+```bash
+python3 comfyui/run_look.py --blocking media/blocking.mp4 \
+    --look looks/look8_cyberpunk/prompt.txt --out out/look8_local --text-only
+```
+
+Setup, models, the depth-strength setting, and the workflow JSON files: [`comfyui/README.md`](comfyui/README.md).
+
 ## What is withheld
 
 The browser tools that upload the reference, type and check each prompt, and submit the job drive a
-hosted service on the author's own account. They are withheld (`withheld/submit/README.md`). Any
-video model that takes a reference video and a text prompt can stand in.
+hosted service on the author's own account. They are withheld (`withheld/submit/README.md`). The
+local ComfyUI route above needs no account, and any video model that takes a reference video and a
+text prompt can also stand in.
 
 ## About
 

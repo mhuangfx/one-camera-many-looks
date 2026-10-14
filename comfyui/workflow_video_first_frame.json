@@ -1,0 +1,296 @@
+{
+ "5": {
+  "class_type": "WanVideoBlockSwap",
+  "inputs": {
+   "blocks_to_swap": 25,
+   "offload_img_emb": false,
+   "offload_txt_emb": false,
+   "use_non_blocking": true,
+   "vace_blocks_to_swap": 0,
+   "prefetch_blocks": 0,
+   "block_swap_debug": false
+  }
+ },
+ "40": {
+  "class_type": "WanVideoLoraSelect",
+  "inputs": {
+   "lora": "WanVideo/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank32_bf16.safetensors",
+   "strength": 1.5,
+   "low_mem_load": false,
+   "merge_loras": true
+  }
+ },
+ "41": {
+  "class_type": "WanVideoLoraSelect",
+  "inputs": {
+   "lora": "WanVideo/Lightx2v/lightx2v_T2V_14B_cfg_step_distill_v2_lora_rank32_bf16.safetensors",
+   "strength": 1.5,
+   "low_mem_load": false,
+   "merge_loras": true
+  }
+ },
+ "1": {
+  "class_type": "WanVideoModelLoader",
+  "inputs": {
+   "model": "Fun/Wan2_2-Fun-Control-A14B-HIGH_fp8_e4m3fn_scaled_KJ_fixed.safetensors",
+   "base_precision": "fp16_fast",
+   "quantization": "fp8_e4m3fn_scaled",
+   "load_device": "offload_device",
+   "attention_mode": "sageattn",
+   "lora": [
+    "40",
+    0
+   ],
+   "block_swap_args": [
+    "5",
+    0
+   ]
+  }
+ },
+ "18": {
+  "class_type": "WanVideoModelLoader",
+  "inputs": {
+   "model": "Fun/Wan2_2-Fun-Control-A14B-LOW_fp8_e4m3fn_scaled_KJ_fixed.safetensors",
+   "base_precision": "fp16_fast",
+   "quantization": "fp8_e4m3fn_scaled",
+   "load_device": "offload_device",
+   "attention_mode": "sageattn",
+   "lora": [
+    "41",
+    0
+   ],
+   "block_swap_args": [
+    "5",
+    0
+   ]
+  }
+ },
+ "2": {
+  "class_type": "WanVideoVAELoader",
+  "inputs": {
+   "model_name": "wanvideo/Wan2_1_VAE_bf16.safetensors",
+   "precision": "bf16"
+  }
+ },
+ "6": {
+  "class_type": "VHS_LoadVideo",
+  "inputs": {
+   "video": "blocking.mp4",
+   "force_rate": 12,
+   "custom_width": 0,
+   "custom_height": 0,
+   "frame_load_cap": 117,
+   "skip_first_frames": 0,
+   "select_every_nth": 1
+  }
+ },
+ "7": {
+  "class_type": "ImageResizeKJv2",
+  "inputs": {
+   "image": [
+    "6",
+    0
+   ],
+   "width": 832,
+   "height": 480,
+   "upscale_method": "lanczos",
+   "keep_proportion": "crop",
+   "pad_color": "0, 0, 0",
+   "crop_position": "center",
+   "divisible_by": 16,
+   "device": "cpu"
+  }
+ },
+ "8": {
+  "class_type": "DepthAnythingV2Nikosis",
+  "inputs": {
+   "images": [
+    "7",
+    0
+   ],
+   "model": "depth_anything_v2_vitl_fp16.safetensors",
+   "manual_resolution": false,
+   "resolution": 1024
+  }
+ },
+ "11": {
+  "class_type": "WanVideoImageToVideoEncode",
+  "inputs": {
+   "width": 832,
+   "height": 480,
+   "num_frames": 117,
+   "noise_aug_strength": 0.0,
+   "start_latent_strength": 1.0,
+   "end_latent_strength": 1.0,
+   "force_offload": true,
+   "fun_or_fl2v_model": true,
+   "vae": [
+    "2",
+    0
+   ],
+   "start_image": [
+    "10",
+    0
+   ]
+  }
+ },
+ "12": {
+  "class_type": "WanVideoEncode",
+  "inputs": {
+   "vae": [
+    "2",
+    0
+   ],
+   "image": [
+    "8",
+    0
+   ],
+   "enable_vae_tiling": false,
+   "tile_x": 272,
+   "tile_y": 272,
+   "tile_stride_x": 144,
+   "tile_stride_y": 128,
+   "noise_aug_strength": 0.0,
+   "latent_strength": 0.75
+  }
+ },
+ "13": {
+  "class_type": "WanVideoAddControlEmbeds",
+  "inputs": {
+   "embeds": [
+    "11",
+    0
+   ],
+   "start_percent": 0.0,
+   "end_percent": 0.6,
+   "latents": [
+    "12",
+    0
+   ]
+  }
+ },
+ "14": {
+  "class_type": "WanVideoTextEncodeCached",
+  "inputs": {
+   "model_name": "umt5_xxl_fp16.safetensors",
+   "precision": "bf16",
+   "positive_prompt": "A cyberpunk night scene, photoreal. The red block car becomes a sleek, angular black future sports car with glowing cyan light strips. The street becomes a dense megacity street at night in heavy rain: towering buildings covered in glowing neon signs and holograms with no readable words where the colored blocks are, tall lamp posts with flickering neon where the poles are. Deep puddles reflecting magenta and cyan light, steam rising from vents, streaks of rain. No text, no logos, no badges.",
+   "negative_prompt": "flat colors, simple shapes, untextured blocks, toy, low detail, blurry, text, logo, watermark, cut, scene change, distorted car, extra wheels",
+   "quantization": "fp8_e4m3fn",
+   "use_disk_cache": true,
+   "device": "gpu"
+  }
+ },
+ "15": {
+  "class_type": "WanVideoSampler",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "image_embeds": [
+    "13",
+    0
+   ],
+   "text_embeds": [
+    "14",
+    0
+   ],
+   "steps": 8,
+   "cfg": 1.0,
+   "shift": 5.0,
+   "seed": 7,
+   "force_offload": true,
+   "scheduler": "dpm++_sde",
+   "riflex_freq_index": 0,
+   "start_step": 0,
+   "end_step": 4
+  }
+ },
+ "19": {
+  "class_type": "WanVideoSampler",
+  "inputs": {
+   "model": [
+    "18",
+    0
+   ],
+   "image_embeds": [
+    "13",
+    0
+   ],
+   "text_embeds": [
+    "14",
+    0
+   ],
+   "steps": 8,
+   "cfg": 1.0,
+   "shift": 5.0,
+   "seed": 7,
+   "force_offload": true,
+   "scheduler": "dpm++_sde",
+   "riflex_freq_index": 0,
+   "start_step": 4,
+   "end_step": -1,
+   "samples": [
+    "15",
+    0
+   ]
+  }
+ },
+ "16": {
+  "class_type": "WanVideoDecode",
+  "inputs": {
+   "vae": [
+    "2",
+    0
+   ],
+   "samples": [
+    "19",
+    0
+   ],
+   "enable_vae_tiling": false,
+   "tile_x": 272,
+   "tile_y": 272,
+   "tile_stride_x": 144,
+   "tile_stride_y": 128
+  }
+ },
+ "17": {
+  "class_type": "VHS_VideoCombine",
+  "inputs": {
+   "images": [
+    "16",
+    0
+   ],
+   "frame_rate": 12,
+   "loop_count": 0,
+   "filename_prefix": "look_local",
+   "format": "video/h264-mp4",
+   "pingpong": false,
+   "save_output": true
+  }
+ },
+ "9": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": "first_frame.png"
+  }
+ },
+ "10": {
+  "class_type": "ImageResizeKJv2",
+  "inputs": {
+   "image": [
+    "9",
+    0
+   ],
+   "width": 832,
+   "height": 480,
+   "upscale_method": "lanczos",
+   "keep_proportion": "crop",
+   "pad_color": "0, 0, 0",
+   "crop_position": "center",
+   "divisible_by": 16,
+   "device": "cpu"
+  }
+ }
+}
